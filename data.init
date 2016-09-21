@@ -1,0 +1,11 @@
+{
+  "rooms" : {
+  },
+  "deck" : [
+    "half",
+    "one",
+    "two",
+    "three",
+    "big"
+  ]
+}

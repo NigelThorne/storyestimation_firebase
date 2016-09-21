@@ -1,0 +1,4 @@
+/.shake
+/dist
+/elm-stuff
+/.DS_Store

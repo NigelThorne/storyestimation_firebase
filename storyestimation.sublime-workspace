@@ -1,0 +1,475 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"With",
+				"withDefault"
+			],
+			[
+				"view",
+				"viewRoom"
+			],
+			[
+				"rec",
+				"receive_session"
+			],
+			[
+				"rece",
+				"receive_shopping_list"
+			],
+			[
+				"each",
+				"each_with_object"
+			],
+			[
+				"par",
+				"parse_iis_log"
+			],
+			[
+				"qua",
+				"quantity_remaining"
+			],
+			[
+				"U",
+				"UserId"
+			],
+			[
+				"Show",
+				"showVotes"
+			],
+			[
+				"Not",
+				"not"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 87.0,
+		"last_filter": "install",
+		"selected_items":
+		[
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"project",
+				"Project: Edit Project"
+			],
+			[
+				"elm",
+				"Set Syntax: Elm"
+			],
+			[
+				"slim",
+				"Set Syntax: Ruby Slim"
+			],
+			[
+				"elix",
+				"Set Syntax: Elixir"
+			],
+			[
+				"indent",
+				"Indentation: Reindent Lines"
+			],
+			[
+				"markdown",
+				"Set Syntax: Markdown"
+			],
+			[
+				"m",
+				"Set Syntax: Markdown"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"markdo",
+				"Set Syntax: Markdown"
+			],
+			[
+				"docker",
+				"Set Syntax: Dockerfile"
+			]
+		],
+		"width": 449.0
+	},
+	"console":
+	{
+		"height": 126.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = '2915d1851351e5ee549c20394736b442' + '8bc59f460fa1548d1514676163dafc88'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/Users/nwt/code/storyestimation.firebaseapp.com",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Room",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/static",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/styles"
+	],
+	"file_history":
+	[
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src/State.elm",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Types.elm",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src/View.elm",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/static/interop.js",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/styles/main.less",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Firebase/Auth.elm",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Firebase/Common.elm",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Room/View.elm",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/NOTES.org",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/cls",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/elm-stuff/packages/elm-lang/html/1.1.0/src/Html/Attributes.elm",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Room/Rest.elm",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/database.rules.json",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/storyestimation.sublime-project",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Room/State.elm",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Room/Ports.elm",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Deck/Ports.elm",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/Makefile",
+		"/Users/nwt/Desktop/Innovation Objective:",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Deck/View.elm",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/dist/app.js",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Room/Types.elm",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src/User/View.elm",
+		"/Users/nwt/code/nibbleit.firebase.com/src/Goal/Types.elm",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src/App.elm",
+		"/Users/nwt/code/shop_by_recipe/helpers.rb",
+		"/Users/nwt/code/shop_by_recipe/app.rb",
+		"/Users/nwt/code/shop_by_recipe/routes/sessions.rb",
+		"/Users/nwt/code/shop_by_recipe/spec/features/root_spec.rb",
+		"/Users/nwt/code/shop_by_recipe/views/layout.slim",
+		"/Users/nwt/code/shop_by_recipe/spec/spec_helper.rb",
+		"/Users/nwt/code/shop_by_recipe/handlers/sass_handler.rb",
+		"/Users/nwt/code/shop_by_recipe/views/recipe.slim",
+		"/Users/nwt/code/shop_by_recipe/views/recipes.slim",
+		"/Users/nwt/code/shop_by_recipe/views/meal_plan.slim",
+		"/Users/nwt/code/shop_by_recipe/routes/meal_plans.rb",
+		"/Users/nwt/code/shop_by_recipe/handlers/coffee_handler.rb",
+		"/Users/nwt/code/shop_by_recipe/rakefile",
+		"/Users/nwt/code/shop_by_recipe/config.ru",
+		"/Users/nwt/code/shop_by_recipe/Gemfile",
+		"/Users/nwt/code/nibbleit.firebase.com/src/View.elm",
+		"/Users/nwt/code/nibbleit.firebase.com/static/interop.js",
+		"/Users/nwt/code/nibbleit.firebase.com/src/App.elm",
+		"/Users/nwt/code/nibbleit.firebase.com/src/Types.elm",
+		"/Users/nwt/code/nibbleit.firebase.com/src/State.elm",
+		"/Users/nwt/code/nibbleit.firebase.com/.firebaserc",
+		"/Users/nwt/code/nibbleit.firebase.com/data.init",
+		"/Users/nwt/Downloads/LBS-PCV-US01/W3SVC28/u_ex160804.log",
+		"/Users/nwt/Downloads/LBS-PCV-US01/W3SVC23/u_ex160804.log",
+		"/Users/nwt/Downloads/wad2/WAD/6de6dd87ce14481da793225551a0d8c6/IaaS/LBS-PCV-US01/W3SVC23/u_ex160804.log",
+		"/Users/nwt/code/nibbleit.firebase.com/database.rules.json",
+		"/Users/nwt/.pry_history",
+		"/Users/nwt/code/logs/report.rb",
+		"/Users/nwt/code/nibbleit.firebase.com/src/Room/Rest.elm",
+		"/Users/nwt/code/nibbleit.firebase.com/src/Room/View.elm",
+		"/Users/nwt/code/nibbleit.firebase.com/src/Room/Types.elm",
+		"/Users/nwt/code/nibbleit.firebase.com/src/Room/State.elm",
+		"/Users/nwt/code/nibbleit.firebase.com/src/Room/Ports.elm",
+		"/Users/nwt/Downloads/LBS-PCV-US01/W3SVC26/u_ex160804.log",
+		"/Users/nwt/Downloads/LBS-PCV-US01/W3SVC1/u_ex160804.log",
+		"/Users/nwt/code/nibbleit.firebase.com/README.md",
+		"/Users/nwt/code/flower_shop/management meeting",
+		"/Users/nwt/.bash_profile",
+		"/Users/nwt/code/flower_shop/input",
+		"/Users/nwt/code/flower_shop/process.rb",
+		"/Users/nwt/code/hack-voting/src/View.elm",
+		"/Users/nwt/code/hack-voting/database.rules.json",
+		"/Users/nwt/code/hack-voting/src/Room/View.elm",
+		"/Users/nwt/code/hack-voting/static/interop.js",
+		"/Users/nwt/code/hack-voting/elm-stuff/packages/krisajenkins/elm-exts/25.7.0/src/Exts/Html/Bootstrap/Glyphicons.elm",
+		"/Users/nwt/code/hack-voting/firebase.json",
+		"/Users/nwt/code/hack-voting/data.init",
+		"/Users/nwt/code/hack-voting/src/Room/Ports.elm",
+		"/Users/nwt/code/hack-voting/src/Room/State.elm",
+		"/Users/nwt/code/hack-voting/test/Test.elm",
+		"/Users/nwt/code/hack-voting/src/Room/Rest.elm",
+		"/Users/nwt/code/hack-voting/src/Room/Types.elm",
+		"/Users/nwt/code/hack-voting/styles/main.less",
+		"/Users/nwt/code/hack-voting/src/App.elm",
+		"/Users/nwt/code/hack-voting/elm-stuff/packages/krisajenkins/elm-exts/25.7.0/src/Exts/Html/Events.elm",
+		"/Users/nwt/code/hack-voting/elm-stuff/packages/elm-lang/virtual-dom/1.1.0/src/VirtualDom.elm",
+		"/Users/nwt/code/hack-voting/elm-stuff/packages/elm-lang/html/1.1.0/src/Html/Events.elm",
+		"/Users/nwt/code/hack-voting/elm-stuff/packages/elm-lang/core/4.0.1/src/Process.elm",
+		"/Users/nwt/code/hack-voting/dist/elm-stuff/packages/elm-lang/virtual-dom/1.1.0/src/VirtualDom.elm",
+		"/Users/nwt/code/hack-voting/dist/elm-stuff/packages/elm-lang/html/1.1.0/src/Html/Events.elm",
+		"/Users/nwt/code/hack-voting/dist/elm-stuff/packages/elm-lang/core/4.0.1/src/Process.elm",
+		"/Users/nwt/code/hack-voting/src/State.elm",
+		"/Users/nwt/code/hack-voting/elm-package.json",
+		"/Users/nwt/code/hack-voting/test/StateTest.elm",
+		"/Users/nwt/code/hack-voting/cls",
+		"/Users/nwt/code/hack-voting/src/Types.elm",
+		"/Users/nwt/code/hack-voting/dist/interop.js",
+		"/Users/nwt/code/hack-voting/static/index.html",
+		"/Users/nwt/code/hack-voting/src/Event/View.elm",
+		"/Users/nwt/code/hack-voting/.firebaserc",
+		"/Users/nwt/code/hack-voting/README.md",
+		"/Users/nwt/code/hack-voting/NOTES.org",
+		"/Users/nwt/Downloads/timetracker-c7798-export.json",
+		"/Users/nwt/code/hack-voting/src/Event/State.elm",
+		"/Users/nwt/code/hack-voting/.gitignore",
+		"/Users/nwt/code/hack-voting/dist/data.init",
+		"/Users/nwt/code/hack-voting/elm-stuff/packages/krisajenkins/elm-exts/25.7.0/src/Exts/RemoteData.elm",
+		"/Users/nwt/code/hack-voting/src/Event/Rest.elm",
+		"/Users/nwt/code/hack-voting/src/Event/Types.elm",
+		"/Users/nwt/code/hack-voting/src/Event/Ports.elm",
+		"/Users/nwt/send_email.rb",
+		"/Users/nwt/Downloads/mind-gears.svg",
+		"/Users/nwt/docker_env.sh"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 93.0,
+		"where_history":
+		[
+			"/Users/nwt/code/storyestimation.firebaseapp.com/src",
+			"/Users/nwt/code/storyestimation.firebaseapp.com,*.elm,*.html",
+			"/Users/nwt/code/storyestimation.firebaseapp.com",
+			"/Users/nwt/code/nibbleit.firebase.com/src,/Users/nwt/code/nibbleit.firebase.com/static,/Users/nwt/code/nibbleit.firebase.com/test",
+			"/Users/nwt/code/nibbleit.firebase.com,*.elm",
+			"/Users/nwt/code/nibbleit.firebase.com",
+			"/Users/nwt/code/hack-voting,*.elm",
+			"/Users/nwt/code/hack-voting",
+			"/Users/nwt/code/hack-voting,*.elm",
+			"/Users/nwt/code/hack-voting"
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"how big is",
+			"roomModel",
+			"auth",
+			"hidden",
+			"authenticate",
+			"button",
+			"log",
+			"Who are you",
+			"toggle",
+			"ChangeName",
+			"user",
+			"require_relative",
+			"basic config",
+			"trays-",
+			"slide",
+			"tray",
+			"tray-loaded",
+			"ident",
+			"identify",
+			"tray",
+			"slide",
+			"tray-loaded",
+			"slides",
+			"room",
+			"Room",
+			"RoomMsg",
+			"subscriptions",
+			"options[0]",
+			"picked",
+			"Log In",
+			"Login",
+			"Log In",
+			"login",
+			"xxx",
+			"nameSend",
+			"voteSend",
+			"votingCompleteSend",
+			"topicSend",
+			"VoteFor",
+			"cardsPath",
+			"roomListen",
+			"event",
+			"eventPath",
+			"echo \\|\necho \\|\necho \\|\necho \\|\necho \\|\necho \\|\necho \\|\necho \\|\necho \\|\necho \\|\n",
+			"Increment",
+			"votingComplete",
+			"ChangeTopic",
+			"topicSend",
+			"HeardDeck",
+			"decodeDeck",
+			"voteButtons",
+			"Project",
+			"room",
+			"Room",
+			"EventMsg",
+			"eventModel",
+			"EventMsg",
+			"event",
+			"Event",
+			"event",
+			"Event",
+			"event",
+			"Event",
+			"event",
+			"Event",
+			"Vote",
+			"vote",
+			"room",
+			"Name",
+			"decodeProject",
+			"Event",
+			"Project",
+			"project",
+			"event",
+			"eventModel",
+			"        HeardRoom response ->\n            ( { model | event = RemoteData.fromResult response }\n            , Cmd.none\n            )\n\n",
+			"NotAsked",
+			"eventView",
+			"flip",
+			"voteSendError",
+			"voteEndedSend",
+			"VoteFor",
+			"voteSend",
+			"firebase.json"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"goal",
+			"Goal",
+			"room",
+			"Room"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": true,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 26.0
+	},
+	"input":
+	{
+		"height": 31.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.elm_type":
+	{
+		"height": 0.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "storyestimation.sublime-project",
+	"replace":
+	{
+		"height": 48.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"remote",
+				"elm-stuff/packages/krisajenkins/elm-exts/25.7.0/src/Exts/RemoteData.elm"
+			],
+			[
+				"",
+				"Dockerfile"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 199.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
