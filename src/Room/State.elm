@@ -20,18 +20,19 @@ initialTopic = "Pick a Topic..."
 
 initialRoom : Room
 initialRoom =  
-    { topic          = Just "Unknown Topic"
-    , votes          = Dict.empty
-    , voters         = Dict.empty
-    , showVotes       = False
+    { topic         = Just "Unknown Topic"
+    , votes         = Dict.empty
+    , voters        = Dict.empty
+    , showVotes     = False
+    , deckId        = Nothing
     }
 
 initialState : ( Model, Cmd Msg )
 initialState =
     ( { room = Loading
-      , deck = Loading
+      , decks = Loading
       , roomError = Nothing
-      , deckError = Nothing
+      , decksError = Nothing
       , voteError = Nothing
       }
     , roomListen ()
@@ -41,9 +42,9 @@ subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
         [ room (Decode.decodeString decodeRoom >> HeardRoom)
-        , deck (Decode.decodeString decodeDeck >> HeardDeck)
+        , decks (Decode.decodeString decodeDecks >> HeardDecks)
         , roomError RoomError
-        , deckError DeckError
+        , decksError DecksError
         , voteSendError VoteError
         ]
 
@@ -60,8 +61,8 @@ update user msg model =
             , Cmd.none
             )
 
-        DeckError error ->
-            ( { model | deckError = Just error }
+        DecksError error ->
+            ( { model | decksError = Just error }
             , Cmd.none
             )
 
@@ -70,8 +71,8 @@ update user msg model =
             , Cmd.none
             )
 
-        HeardDeck response ->
-            ( { model | deck = RemoteData.fromResult response }
+        HeardDecks response ->
+            ( { model | decks = RemoteData.fromResult response }
             , Cmd.none
             )
 
@@ -114,3 +115,10 @@ update user msg model =
 
                 _ ->
                     ( model, Cmd.none )
+
+        --ChangeDeck deckName ->
+        --    case model.room of
+        --        Success room ->
+        --            ( model
+        --            , deckChangeSend deckName 
+        --            )

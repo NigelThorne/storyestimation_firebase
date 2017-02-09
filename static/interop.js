@@ -25,7 +25,7 @@
 
     var database = firebase.database();
 
-    var deckPath = database.ref('/deck');
+    var decksPath = database.ref('/decks');
     var roomPath = database.ref('/rooms/'+ window.location.pathname);
 
     app.ports.roomListen.subscribe(function () {
@@ -40,22 +40,22 @@
             },
             app.ports.roomError.send
         );
-        console.log('LISTENING DECK', deckPath.toString());
-        deckPath.on(
+        console.log('LISTENING DECK', decksPath.toString());
+        decksPath.on(
             'value',
             function(snapshot) {
                 var rawValue = snapshot.val();
                 console.log('HEARD DECK', rawValue);
-                app.ports.deck.send(JSON.stringify(rawValue));
+                app.ports.decks.send(JSON.stringify(rawValue));
             },
-            app.ports.deckError.send
+            app.ports.decksError.send
         );
   });
 
     app.ports.roomSilence.subscribe(function () {
         console.log('SILENCING', roomPath.toString());
         roomPath.off('value');
-        deckPath.off('value');
+        decksPath.off('value');
     });
 
     // Show Votes.

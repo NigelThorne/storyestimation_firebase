@@ -24,7 +24,7 @@
       //     }
       // }
     },
-    "deck":{
+    "decks":{
        ".read":true,
        ".write":false
     }

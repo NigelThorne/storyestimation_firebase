@@ -29,6 +29,9 @@ decodeVoter = string
 decodeCard : Decoder Card
 decodeCard = string
 
+decodeDecks : Decoder Decks
+decodeDecks = list decodeDeck
+
 decodeDeck : Decoder Deck
 decodeDeck = list decodeCard
 
@@ -39,3 +42,4 @@ decodeRoom =
         |> optional "votes"     (dict decodeVote) Dict.empty
         |> optional "voters"    (dict decodeVoter) Dict.empty
         |> optional "showVotes" ( bool ) False
+        |> optional "deckId"    (maybe int) Nothing

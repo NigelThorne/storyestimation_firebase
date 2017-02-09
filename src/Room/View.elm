@@ -1,6 +1,7 @@
 module Room.View exposing (root)
 
 import Dict exposing (Dict)
+import List.Extra exposing (getAt)
 import Room.State exposing (..)
 import Room.Types exposing (..)
 import Exts.Html.Bootstrap exposing (..)
@@ -27,7 +28,6 @@ root user model =
         NotAsked ->
             h2 [] [ text "Initialising Room." ]
 
-
 roomView : User -> Room -> Model -> Html Msg
 roomView user room model =
     let
@@ -52,17 +52,33 @@ roomView user room model =
             , h4 [] [text "How big is: "]
             , textarea [class "topic", value roomTopic, onInput ChangeTopic, rows rowsCount, wrap "hard"] []
             , div [class "col-12"]
-                  [ deckView userVote model ]
+                  [ decksView userVote room.deckId model ]
             , div [class "col-12"]
                   [ well [ votesView room ]]
             ]
 
-deckView : Vote -> Model -> Html Msg
-deckView userVote model =
-    case model.deck of
-        Success deck ->
-            div []
-                ((h3 [] [text "Pick one: "])  :: (deck |> List.map (cardView userVote)))
+pickDeck : Maybe Int -> List Deck -> Maybe Deck
+pickDeck deckId decks =
+    let
+        index = case deckId of
+            Nothing -> 0
+            Just a -> a
+    in
+        getAt index decks
+
+
+decksView : Vote -> Maybe Int -> Model -> Html Msg
+decksView userVote deckId model =
+    case model.decks of
+        Success decks ->
+            let
+                deck = pickDeck deckId decks
+            in 
+                case deck of
+                    Nothing -> div [] [h3 [] [text "pick a deck"]]
+                    Just pickedDeck -> 
+                        div []
+                            ((h3 [] [text "Pick one: "])  :: (pickedDeck |> List.map (cardView userVote)))
 
         Failure err ->
             div [ class "alert alert-danger" ] [ text err ]
@@ -188,8 +204,7 @@ votesView room =
                                         |> List.map (\t -> li [] [text t]) )] 
                         )
                         [voteShowToggleButton room.showVotes]  
-                )
-            
+                )         
 
 voteShowToggleButton : Bool -> Html Msg
 voteShowToggleButton showing =

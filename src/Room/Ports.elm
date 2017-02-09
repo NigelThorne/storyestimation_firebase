@@ -15,13 +15,13 @@ port roomSilence : () -> Cmd msg
 
 ------------------------------------------------------------
 
-port deck : (String -> msg) -> Sub msg
+port decks : (String -> msg) -> Sub msg
 
-port deckError : (Error -> msg) -> Sub msg
+port decksListen : () -> Cmd msg
 
-port deckListen : () -> Cmd msg
+port decksSilence : () -> Cmd msg
 
-port deckSilence : () -> Cmd msg
+port decksError : (Error -> msg) -> Sub msg
 
 ------------------------------------------------------------
 

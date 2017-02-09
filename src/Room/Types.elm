@@ -23,28 +23,32 @@ type alias Vote =
 type alias Deck = 
     List Card 
 
+type alias Decks = 
+    List Deck 
+
 type alias Room = 
     { topic          : Maybe Topic
     , votes          : Dict UserId Vote
     , voters         : Dict UserId Name
     , showVotes      : Bool
+    , deckId         : Maybe Int
     }
 
 type alias Model =
     { room      : RemoteData String Room
-    , deck      : RemoteData String Deck
+    , decks     : RemoteData String Decks
     , roomError : Maybe Firebase.Error
-    , deckError : Maybe Firebase.Error
+    , decksError: Maybe Firebase.Error
     , voteError : Maybe Firebase.Error
     }
 
 type Msg
     = HeardRoom (Result String Room)
-    | HeardDeck (Result String Deck)
+    | HeardDecks (Result String Decks)
     | ChangeName Name
     | ChangeTopic Topic
     | RevealResults Bool
     | VoteFor Vote
     | RoomError Firebase.Error
-    | DeckError Firebase.Error
+    | DecksError Firebase.Error
     | VoteError Firebase.Error

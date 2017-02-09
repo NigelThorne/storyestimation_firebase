@@ -1,11 +1,21 @@
 {
   "rooms" : {
   },
-  "deck" : [
-    "half",
-    "one",
-    "two",
-    "three",
-    "big"
+  "decks" : [
+	  [
+	    "1/2",
+	    "1",
+	    "2",
+	    "3",
+	    "too big"
+	  ],
+	  [
+	    "XS",
+	    "S",
+	    "M",
+	    "L",
+	    "XL",
+	    "XXL"
+	  ]
   ]
 }
