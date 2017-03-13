@@ -4,6 +4,14 @@
 		"selected_items":
 		[
 			[
+				"room",
+				"roomPath"
+			],
+			[
+				"decks",
+				"decks"
+			],
+			[
 				"view",
 				"viewRoom"
 			],
@@ -43,54 +51,6 @@
 	},
 	"buffers":
 	[
-		{
-			"file": "data.init",
-			"settings":
-			{
-				"buffer_size": 203,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "database.rules.json",
-			"settings":
-			{
-				"buffer_size": 617,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"contents": "module Room.View exposing (root)\n\nimport Dict exposing (Dict)\nimport Room.State exposing (..)\nimport Room.Types exposing (..)\nimport Exts.Html.Bootstrap exposing (..)\nimport Exts.RemoteData exposing (..)\nimport Firebase.Auth exposing (User)\nimport Html exposing (..)\nimport Html.Attributes exposing (..)\nimport Html.Events exposing (..)\nimport String exposing (lines)\n\n-- dealing with authorization \nroot : User -> Model -> Html Msg\nroot user model =\n    case model.room of\n        Success room ->\n            roomView user room model\n\n        Failure err ->\n            div [ class \"alert alert-danger\" ] [ text err ]\n\n        Loading ->\n            h2 [] [ i [] [ text \"Waiting for room data...\" ] ]\n\n        NotAsked ->\n            h2 [] [ text \"Initialising Room.\" ]\n\nroomView : User -> Room -> Model -> Html Msg\nroomView user room model =\n    let\n        userVote =\n            Dict.get user.uid room.votes\n                |> Maybe.withDefault initialVote\n\n        userName =\n            Dict.get user.uid room.voters\n                |> Maybe.withDefault initialName\n            \n        roomTopic = \n            room.topic\n                |> Maybe.withDefault \"..pick something to vote on.\" \n\n        rowsCount = roomTopic |> String.lines |> List.length\n    in\n        div []\n            [ h3 [] [text \"Hi \"\n                    , input [class \"\", placeholder \"Your name goes here\", onInput ChangeName, value userName] []\n                    ]\n            , h4 [] [text \"How big is: \"]\n            , textarea [class \"topic\", value roomTopic, onInput ChangeTopic, rows rowsCount, wrap \"hard\"] []\n            , div [class \"col-12\"]\n                  [ deckView userVote model ]\n            , div [class \"col-12\"]\n                  [ well [ votesView room ]]\n            ]\n\ndeckView : Vote -> Model -> Html Msg\ndeckView userVote model =\n    case model.deck of\n        Success deck ->\n            div []\n                ((h3 [] [text \"Pick one: \"])  :: (deck |> List.map (cardView userVote)))\n\n        Failure err ->\n            div [ class \"alert alert-danger\" ] [ text err ]\n\n        Loading ->\n            h2 [] [ i [] [ text \"Waiting for deck data...\" ] ]\n\n        NotAsked ->\n            h2 [] [ text \"Initialising Deck.\" ]\n\n\ncardView : Vote -> Card  -> Html Msg\ncardView userVote card =\n    voteButtons userVote card\n\nvoteButtons : Vote -> Card  -> Html Msg\nvoteButtons vote card  =\n    let\n        ordButton  =\n            let\n                active =\n                    case vote of\n                        Nothing ->\n                            False\n\n                        Just votedCard ->\n                            votedCard == card\n            in\n                button\n                    [ classList\n                        [ ( \"btn\", True )\n                        , ( \"btn-default\", not active )\n                        , ( \"btn-info\", active )\n                        ]\n                    , onClick\n                        (VoteFor \n                            (if active then\n                                Nothing\n                             else\n                                Just card\n                            )\n                        )\n                    ]\n                    [ text card ]\n    in\n        div [ class \"btn-group\" ]\n            [ ordButton ]\n\n\ntally : Dict String Vote -> Dict Card Int\ntally votes =\n    let\n        increment =\n            Just << (+) 1 << Maybe.withDefault 0\n    in\n        List.foldl\n            (\\vote acc ->\n                case vote of\n                    Just card -> Dict.update card increment acc\n                    Nothing -> acc\n            )\n            Dict.empty\n            (Dict.values votes)\n\nvoters : Dict UserId Name -> UserId -> Name\nvoters names id = \n    Dict.get id names |> Maybe.withDefault \"Anonymous\"\n\ncollectNames : Dict UserId Name -> UserId -> Vote -> Dict Card (List Name) -> Dict Card (List Name)\ncollectNames names uid vote dict =\n    case vote of \n        Just card -> \n            case Dict.get uid names of\n                Just name -> \n                    let\n                        array = case (Dict.get card dict) of \n                            Just vals -> vals\n                            Nothing -> []\n                    in\n                        Dict.insert card (name :: array) dict\n                Nothing -> dict\n        Nothing -> dict\n\nvotesView : Room -> Html Msg\nvotesView room =\n    let\n        voteCounts =\n            tally room.votes\n\n        voterNames = \n            room.votes \n                |> Dict.filter (\\k v -> v /= Nothing)\n                |> Dict.keys\n                |> List.map (voters room.voters)\n\n        maxCount =\n            voteCounts\n                |> Dict.values\n                |> List.maximum\n                |> Maybe.withDefault 0\n\n        voterspercard = \n            Dict.foldl (collectNames room.voters) Dict.empty room.votes \n\n        tallied =\n            tally room.votes\n                |> Dict.toList\n\n        totalCount = voteCounts\n                |> Dict.values\n                |> List.foldl (\\v acc-> v + acc) 0\n\n        showVotes = room.showVotes\n    in\n        div [classList [(\"votes\", True)]] (List.append ( \n                            if showVotes then\n                                tallied\n                                    |> List.map (voteBar voterspercard maxCount )\n                                    |> List.intersperse (hr [] [])\n                            else\n                                [ h2 [] [ text ((toString totalCount) ++ \" votes cast ... \") ]\n                                , ul [] (voterNames \n                                        |> List.map (\\t -> li [] [text t]) )] \n                        )\n                        [voteShowToggleButton room.showVotes]  \n                )         \n\nvoteShowToggleButton : Bool -> Html Msg\nvoteShowToggleButton showing =\n    button\n        [ classList\n            [ ( \"btn\", True )\n            ]\n        , onClick\n            ( RevealResults (not showing) )\n        ]\n        [ if showing then  text \"Hide votes\" else text \"Press when *Everyone* has finished voting!\" ]\n\n\n--- results view\nvoteBar :  Dict Card (List Name) -> Int -> ( Card, Int )  -> Html msg\nvoteBar  names maxCount ( card, voteCount ) =\n    let\n\n        width =\n            (toFloat voteCount / toFloat maxCount)\n                * 100.0\n\n        pct n =\n            toString n ++ \"%\"\n\n        voters = (case Dict.get card names of\n                Just all -> all\n                Nothing -> [])\n            |> List.map text\n            |> List.intersperse (text \", \")\n    in\n        div []\n            [ h3 []\n                [ text card\n                , text \" \"\n                , badge voteCount\n                ]\n            , div\n                [ style\n                    [ ( \"width\", pct width )\n                    , ( \"margin\", \"15px 0\" )\n                    , ( \"padding\", \"10px\" )\n                    , ( \"background-color\", \"#3DF236\" )\n                    , ( \"border\", \"solid 2px #28A024\" )\n                    , ( \"border-radius\", \"10px\" )\n                    , ( \"transition\", \"width 200ms\" )\n                    ]\n                ]\n                voters\n            ]\n\nbadge : Int -> Html msg\nbadge n =\n    span [ class \"badge\" ] [ text (toString n) ]\n",
-			"file": "src/Room/View.elm",
-			"file_size": 7288,
-			"file_write_time": 131188833740000000,
-			"settings":
-			{
-				"buffer_size": 7283,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"contents": "Searching 612 files for \"deck\"\n\n/Users/nwt/code/storyestimation.firebaseapp.com/data.init:\n    2    \"rooms\" : {\n    3    },\n    4:   \"decks\" : {\n    5: \t  \"deck1\" : [\n    6  \t    \"1/2\",\n    7  \t    \"1\",\n    .\n   10  \t    \"too big\"\n   11  \t  ],\n   12: \t  \"deck2\" : [\n   13  \t    \"XS\",\n   14  \t    \"S\",\n\n/Users/nwt/code/storyestimation.firebaseapp.com/database.rules.json:\n   25        // }\n   26      },\n   27:     \"decks\":{\n   28         \".read\":true,\n   29         \".write\":false\n\n/Users/nwt/code/storyestimation.firebaseapp.com/dist/app.js:\n 9072  var _user$project$Room_Types$Model = F5(\n 9073  \tfunction (a, b, c, d, e) {\n 9074: \t\treturn {room: a, deck: b, roomError: c, deckError: d, voteError: e};\n 9075  \t});\n 9076  var _user$project$Room_Types$VoteError = function (a) {\n 9077  \treturn {ctor: 'VoteError', _0: a};\n 9078  };\n 9079: var _user$project$Room_Types$DeckError = function (a) {\n 9080: \treturn {ctor: 'DeckError', _0: a};\n 9081  };\n 9082  var _user$project$Room_Types$RoomError = function (a) {\n ....\n 9095  \treturn {ctor: 'ChangeName', _0: a};\n 9096  };\n 9097: var _user$project$Room_Types$HeardDeck = function (a) {\n 9098: \treturn {ctor: 'HeardDeck', _0: a};\n 9099  };\n 9100  var _user$project$Room_Types$HeardRoom = function (a) {\n ....\n 9224  \t\treturn null;\n 9225  \t});\n 9226: var _user$project$Room_Ports$deck = _elm_lang$core$Native_Platform.incomingPort('deck', _elm_lang$core$Json_Decode$string);\n 9227: var _user$project$Room_Ports$deckError = _elm_lang$core$Native_Platform.incomingPort(\n 9228: \t'deckError',\n 9229  \tA2(\n 9230  \t\t_elm_lang$core$Json_Decode$andThen,\n ....\n 9239  \t\t\t\t});\n 9240  \t\t}));\n 9241: var _user$project$Room_Ports$deckListen = _elm_lang$core$Native_Platform.outgoingPort(\n 9242: \t'deckListen',\n 9243  \tfunction (v) {\n 9244  \t\treturn null;\n 9245  \t});\n 9246: var _user$project$Room_Ports$deckSilence = _elm_lang$core$Native_Platform.outgoingPort(\n 9247: \t'deckSilence',\n 9248  \tfunction (v) {\n 9249  \t\treturn null;\n ....\n 9335  \n 9336  var _user$project$Room_Rest$decodeCard = _elm_lang$core$Json_Decode$string;\n 9337: var _user$project$Room_Rest$decodeDeck = _elm_lang$core$Json_Decode$list(_user$project$Room_Rest$decodeCard);\n 9338  var _user$project$Room_Rest$decodeVoter = _elm_lang$core$Json_Decode$string;\n 9339  var _user$project$Room_Rest$decodeVote = _elm_lang$core$Json_Decode$maybe(_elm_lang$core$Json_Decode$string);\n ....\n 9390  \t\t\t\t\t_1: _elm_lang$core$Platform_Cmd$none\n 9391  \t\t\t\t};\n 9392: \t\t\tcase 'DeckError':\n 9393  \t\t\t\treturn {\n 9394  \t\t\t\t\tctor: '_Tuple2',\n ....\n 9396  \t\t\t\t\t\tmodel,\n 9397  \t\t\t\t\t\t{\n 9398: \t\t\t\t\t\t\tdeckError: _elm_lang$core$Maybe$Just(_p0._0)\n 9399  \t\t\t\t\t\t}),\n 9400  \t\t\t\t\t_1: _elm_lang$core$Platform_Cmd$none\n ....\n 9410  \t\t\t\t\t_1: _elm_lang$core$Platform_Cmd$none\n 9411  \t\t\t\t};\n 9412: \t\t\tcase 'HeardDeck':\n 9413  \t\t\t\treturn {\n 9414  \t\t\t\t\tctor: '_Tuple2',\n ....\n 9416  \t\t\t\t\t\tmodel,\n 9417  \t\t\t\t\t\t{\n 9418: \t\t\t\t\t\t\tdeck: _krisajenkins$elm_exts$Exts_RemoteData$fromResult(_p0._0)\n 9419  \t\t\t\t\t\t}),\n 9420  \t\t\t\t\t_1: _elm_lang$core$Platform_Cmd$none\n ....\n 9477  \t\t\t\t\t\tA2(_elm_lang$core$Json_Decode$decodeString, _user$project$Room_Rest$decodeRoom, _p6));\n 9478  \t\t\t\t}),\n 9479: \t\t\t\t_user$project$Room_Ports$deck(\n 9480  \t\t\t\tfunction (_p7) {\n 9481: \t\t\t\t\treturn _user$project$Room_Types$HeardDeck(\n 9482: \t\t\t\t\t\tA2(_elm_lang$core$Json_Decode$decodeString, _user$project$Room_Rest$decodeDeck, _p7));\n 9483  \t\t\t\t}),\n 9484  \t\t\t\t_user$project$Room_Ports$roomError(_user$project$Room_Types$RoomError),\n 9485: \t\t\t\t_user$project$Room_Ports$deckError(_user$project$Room_Types$DeckError),\n 9486  \t\t\t\t_user$project$Room_Ports$voteSendError(_user$project$Room_Types$VoteError)\n 9487  \t\t\t]));\n ....\n 9489  var _user$project$Room_State$initialState = {\n 9490  \tctor: '_Tuple2',\n 9491: \t_0: {room: _krisajenkins$elm_exts$Exts_RemoteData$Loading, deck: _krisajenkins$elm_exts$Exts_RemoteData$Loading, roomError: _elm_lang$core$Maybe$Nothing, deckError: _elm_lang$core$Maybe$Nothing, voteError: _elm_lang$core$Maybe$Nothing},\n 9492  \t_1: _user$project$Room_Ports$roomListen(\n 9493  \t\t{ctor: '_Tuple0'})\n ....\n 9891  \t\treturn A2(_user$project$Room_View$voteButtons, userVote, card);\n 9892  \t});\n 9893: var _user$project$Room_View$deckView = F2(\n 9894  \tfunction (userVote, model) {\n 9895: \t\tvar _p12 = model.deck;\n 9896  \t\tswitch (_p12.ctor) {\n 9897  \t\t\tcase 'Success':\n ....\n 9938  \t\t\t\t\t\t\t_elm_lang$core$Native_List.fromArray(\n 9939  \t\t\t\t\t\t\t\t[\n 9940: \t\t\t\t\t\t\t\t\t_elm_lang$html$Html$text('Waiting for deck data...')\n 9941  \t\t\t\t\t\t\t\t]))\n 9942  \t\t\t\t\t\t]));\n ....\n 9948  \t\t\t\t\t_elm_lang$core$Native_List.fromArray(\n 9949  \t\t\t\t\t\t[\n 9950: \t\t\t\t\t\t\t_elm_lang$html$Html$text('Initialising Deck.')\n 9951  \t\t\t\t\t\t]));\n 9952  \t\t}\n ....\n 10018  \t\t\t\t\t_elm_lang$core$Native_List.fromArray(\n 10019  \t\t\t\t\t\t[\n 10020: \t\t\t\t\t\t\tA2(_user$project$Room_View$deckView, userVote, model)\n 10021  \t\t\t\t\t\t])),\n 10022  \t\t\t\t\tA2(\n\n/Users/nwt/code/storyestimation.firebaseapp.com/dist/interop.js:\n   26      var database = firebase.database();\n   27  \n   28:     var deckPath = database.ref('/deck');\n   29      var roomPath = database.ref('/rooms/'+ window.location.pathname);\n   30  \n   ..\n   41              app.ports.roomError.send\n   42          );\n   43:         console.log('LISTENING DECK', deckPath.toString());\n   44:         deckPath.on(\n   45              'value',\n   46              function(snapshot) {\n   47                  var rawValue = snapshot.val();\n   48:                 console.log('HEARD DECK', rawValue);\n   49:                 app.ports.deck.send(JSON.stringify(rawValue));\n   50              },\n   51:             app.ports.deckError.send\n   52          );\n   53    });\n   ..\n   56          console.log('SILENCING', roomPath.toString());\n   57          roomPath.off('value');\n   58:         deckPath.off('value');\n   59      });\n   60  \n\n/Users/nwt/code/storyestimation.firebaseapp.com/elm-stuff/build-artifacts/0.17.1/user/project/1.0.0/Room-Ports.elmi:\n    <binary>\n\n/Users/nwt/code/storyestimation.firebaseapp.com/elm-stuff/build-artifacts/0.17.1/user/project/1.0.0/Room-Ports.elmo:\n   24  \t\treturn null;\n   25  \t});\n   26: var _user$project$Room_Ports$deck = _elm_lang$core$Native_Platform.incomingPort('deck', _elm_lang$core$Json_Decode$string);\n   27: var _user$project$Room_Ports$deckError = _elm_lang$core$Native_Platform.incomingPort(\n   28: \t'deckError',\n   29  \tA2(\n   30  \t\t_elm_lang$core$Json_Decode$andThen,\n   ..\n   39  \t\t\t\t});\n   40  \t\t}));\n   41: var _user$project$Room_Ports$deckListen = _elm_lang$core$Native_Platform.outgoingPort(\n   42: \t'deckListen',\n   43  \tfunction (v) {\n   44  \t\treturn null;\n   45  \t});\n   46: var _user$project$Room_Ports$deckSilence = _elm_lang$core$Native_Platform.outgoingPort(\n   47: \t'deckSilence',\n   48  \tfunction (v) {\n   49  \t\treturn null;\n\n/Users/nwt/code/storyestimation.firebaseapp.com/elm-stuff/build-artifacts/0.17.1/user/project/1.0.0/Room-Rest.elmi:\n    <binary>\n\n/Users/nwt/code/storyestimation.firebaseapp.com/elm-stuff/build-artifacts/0.17.1/user/project/1.0.0/Room-Rest.elmo:\n    1  var _user$project$Room_Rest$decodeCard = _elm_lang$core$Json_Decode$string;\n    2: var _user$project$Room_Rest$decodeDeck = _elm_lang$core$Json_Decode$list(_user$project$Room_Rest$decodeCard);\n    3  var _user$project$Room_Rest$decodeVoter = _elm_lang$core$Json_Decode$string;\n    4  var _user$project$Room_Rest$decodeVote = _elm_lang$core$Json_Decode$maybe(_elm_lang$core$Json_Decode$string);\n\n/Users/nwt/code/storyestimation.firebaseapp.com/elm-stuff/build-artifacts/0.17.1/user/project/1.0.0/Room-State.elmi:\n    <binary>\n\n/Users/nwt/code/storyestimation.firebaseapp.com/elm-stuff/build-artifacts/0.17.1/user/project/1.0.0/Room-State.elmo:\n   23  \t\t\t\t\t_1: _elm_lang$core$Platform_Cmd$none\n   24  \t\t\t\t};\n   25: \t\t\tcase 'DeckError':\n   26  \t\t\t\treturn {\n   27  \t\t\t\t\tctor: '_Tuple2',\n   ..\n   29  \t\t\t\t\t\tmodel,\n   30  \t\t\t\t\t\t{\n   31: \t\t\t\t\t\t\tdeckError: _elm_lang$core$Maybe$Just(_p0._0)\n   32  \t\t\t\t\t\t}),\n   33  \t\t\t\t\t_1: _elm_lang$core$Platform_Cmd$none\n   ..\n   43  \t\t\t\t\t_1: _elm_lang$core$Platform_Cmd$none\n   44  \t\t\t\t};\n   45: \t\t\tcase 'HeardDeck':\n   46  \t\t\t\treturn {\n   47  \t\t\t\t\tctor: '_Tuple2',\n   ..\n   49  \t\t\t\t\t\tmodel,\n   50  \t\t\t\t\t\t{\n   51: \t\t\t\t\t\t\tdeck: _krisajenkins$elm_exts$Exts_RemoteData$fromResult(_p0._0)\n   52  \t\t\t\t\t\t}),\n   53  \t\t\t\t\t_1: _elm_lang$core$Platform_Cmd$none\n   ..\n  110  \t\t\t\t\t\tA2(_elm_lang$core$Json_Decode$decodeString, _user$project$Room_Rest$decodeRoom, _p6));\n  111  \t\t\t\t}),\n  112: \t\t\t\t_user$project$Room_Ports$deck(\n  113  \t\t\t\tfunction (_p7) {\n  114: \t\t\t\t\treturn _user$project$Room_Types$HeardDeck(\n  115: \t\t\t\t\t\tA2(_elm_lang$core$Json_Decode$decodeString, _user$project$Room_Rest$decodeDeck, _p7));\n  116  \t\t\t\t}),\n  117  \t\t\t\t_user$project$Room_Ports$roomError(_user$project$Room_Types$RoomError),\n  118: \t\t\t\t_user$project$Room_Ports$deckError(_user$project$Room_Types$DeckError),\n  119  \t\t\t\t_user$project$Room_Ports$voteSendError(_user$project$Room_Types$VoteError)\n  120  \t\t\t]));\n  ...\n  122  var _user$project$Room_State$initialState = {\n  123  \tctor: '_Tuple2',\n  124: \t_0: {room: _krisajenkins$elm_exts$Exts_RemoteData$Loading, deck: _krisajenkins$elm_exts$Exts_RemoteData$Loading, roomError: _elm_lang$core$Maybe$Nothing, deckError: _elm_lang$core$Maybe$Nothing, voteError: _elm_lang$core$Maybe$Nothing},\n  125  \t_1: _user$project$Room_Ports$roomListen(\n  126  \t\t{ctor: '_Tuple0'})\n\n/Users/nwt/code/storyestimation.firebaseapp.com/elm-stuff/build-artifacts/0.17.1/user/project/1.0.0/Room-Types.elmi:\n    <binary>\n\n/Users/nwt/code/storyestimation.firebaseapp.com/elm-stuff/build-artifacts/0.17.1/user/project/1.0.0/Room-Types.elmo:\n    5  var _user$project$Room_Types$Model = F5(\n    6  \tfunction (a, b, c, d, e) {\n    7: \t\treturn {room: a, deck: b, roomError: c, deckError: d, voteError: e};\n    8  \t});\n    9  var _user$project$Room_Types$VoteError = function (a) {\n   10  \treturn {ctor: 'VoteError', _0: a};\n   11  };\n   12: var _user$project$Room_Types$DeckError = function (a) {\n   13: \treturn {ctor: 'DeckError', _0: a};\n   14  };\n   15  var _user$project$Room_Types$RoomError = function (a) {\n   ..\n   28  \treturn {ctor: 'ChangeName', _0: a};\n   29  };\n   30: var _user$project$Room_Types$HeardDeck = function (a) {\n   31: \treturn {ctor: 'HeardDeck', _0: a};\n   32  };\n   33  var _user$project$Room_Types$HeardRoom = function (a) {\n\n/Users/nwt/code/storyestimation.firebaseapp.com/elm-stuff/build-artifacts/0.17.1/user/project/1.0.0/Room-View.elmi:\n    <binary>\n\n/Users/nwt/code/storyestimation.firebaseapp.com/elm-stuff/build-artifacts/0.17.1/user/project/1.0.0/Room-View.elmo:\n  299  \t\treturn A2(_user$project$Room_View$voteButtons, userVote, card);\n  300  \t});\n  301: var _user$project$Room_View$deckView = F2(\n  302  \tfunction (userVote, model) {\n  303: \t\tvar _p12 = model.deck;\n  304  \t\tswitch (_p12.ctor) {\n  305  \t\t\tcase 'Success':\n  ...\n  346  \t\t\t\t\t\t\t_elm_lang$core$Native_List.fromArray(\n  347  \t\t\t\t\t\t\t\t[\n  348: \t\t\t\t\t\t\t\t\t_elm_lang$html$Html$text('Waiting for deck data...')\n  349  \t\t\t\t\t\t\t\t]))\n  350  \t\t\t\t\t\t]));\n  ...\n  356  \t\t\t\t\t_elm_lang$core$Native_List.fromArray(\n  357  \t\t\t\t\t\t[\n  358: \t\t\t\t\t\t\t_elm_lang$html$Html$text('Initialising Deck.')\n  359  \t\t\t\t\t\t]));\n  360  \t\t}\n  ...\n  426  \t\t\t\t\t_elm_lang$core$Native_List.fromArray(\n  427  \t\t\t\t\t\t[\n  428: \t\t\t\t\t\t\tA2(_user$project$Room_View$deckView, userVote, model)\n  429  \t\t\t\t\t\t])),\n  430  \t\t\t\t\tA2(\n\n/Users/nwt/code/storyestimation.firebaseapp.com/elm-stuff/build-artifacts/0.17.1/user/project/1.0.0/State.elmi:\n    <binary>\n\n/Users/nwt/code/storyestimation.firebaseapp.com/elm-stuff/build-artifacts/0.17.1/user/project/1.0.0/Types.elmi:\n    <binary>\n\n/Users/nwt/code/storyestimation.firebaseapp.com/elm-stuff/build-artifacts/0.17.1/user/project/1.0.0/View.elmi:\n    <binary>\n\n/Users/nwt/code/storyestimation.firebaseapp.com/src/Room/Ports.elm:\n   16  ------------------------------------------------------------\n   17  \n   18: port deck : (String -> msg) -> Sub msg\n   19  \n   20: port deckError : (Error -> msg) -> Sub msg\n   21  \n   22: port deckListen : () -> Cmd msg\n   23  \n   24: port deckSilence : () -> Cmd msg\n   25  \n   26  ------------------------------------------------------------\n\n/Users/nwt/code/storyestimation.firebaseapp.com/src/Room/Rest.elm:\n   30  decodeCard = string\n   31  \n   32: decodeDeck : Decoder Deck\n   33: decodeDeck = list decodeCard\n   34  \n   35  decodeRoom : Decoder Room\n\n/Users/nwt/code/storyestimation.firebaseapp.com/src/Room/State.elm:\n   30  initialState =\n   31      ( { room = Loading\n   32:       , deck = Loading\n   33        , roomError = Nothing\n   34:       , deckError = Nothing\n   35        , voteError = Nothing\n   36        }\n   ..\n   42      Sub.batch\n   43          [ room (Decode.decodeString decodeRoom >> HeardRoom)\n   44:         , deck (Decode.decodeString decodeDeck >> HeardDeck)\n   45          , roomError RoomError\n   46:         , deckError DeckError\n   47          , voteSendError VoteError\n   48          ]\n   ..\n   61              )\n   62  \n   63:         DeckError error ->\n   64:             ( { model | deckError = Just error }\n   65              , Cmd.none\n   66              )\n   ..\n   71              )\n   72  \n   73:         HeardDeck response ->\n   74:             ( { model | deck = RemoteData.fromResult response }\n   75              , Cmd.none\n   76              )\n\n/Users/nwt/code/storyestimation.firebaseapp.com/src/Room/Types.elm:\n   21      Maybe Card\n   22  \n   23: type alias Deck = \n   24      List Card \n   25  \n   ..\n   33  type alias Model =\n   34      { room      : RemoteData String Room\n   35:     , deck      : RemoteData String Deck\n   36      , roomError : Maybe Firebase.Error\n   37:     , deckError : Maybe Firebase.Error\n   38      , voteError : Maybe Firebase.Error\n   39      }\n   ..\n   41  type Msg\n   42      = HeardRoom (Result String Room)\n   43:     | HeardDeck (Result String Deck)\n   44      | ChangeName Name\n   45      | ChangeTopic Topic\n   ..\n   47      | VoteFor Vote\n   48      | RoomError Firebase.Error\n   49:     | DeckError Firebase.Error\n   50      | VoteError Firebase.Error\n   51  \n\n/Users/nwt/code/storyestimation.firebaseapp.com/src/Room/View.elm:\n   52              , textarea [class \"topic\", value roomTopic, onInput ChangeTopic, rows rowsCount, wrap \"hard\"] []\n   53              , div [class \"col-12\"]\n   54:                   [ deckView userVote model ]\n   55              , div [class \"col-12\"]\n   56                    [ well [ votesView room ]]\n   57              ]\n   58  \n   59: deckView : Vote -> Model -> Html Msg\n   60: deckView userVote model =\n   61:     case model.deck of\n   62:         Success deck ->\n   63              div []\n   64:                 ((h3 [] [text \"Pick one: \"])  :: (deck |> List.map (cardView userVote)))\n   65  \n   66          Failure err ->\n   ..\n   68  \n   69          Loading ->\n   70:             h2 [] [ i [] [ text \"Waiting for deck data...\" ] ]\n   71  \n   72          NotAsked ->\n   73:             h2 [] [ text \"Initialising Deck.\" ]\n   74  \n   75  \n\n/Users/nwt/code/storyestimation.firebaseapp.com/static/interop.js:\n   26      var database = firebase.database();\n   27  \n   28:     var deckPath = database.ref('/deck');\n   29      var roomPath = database.ref('/rooms/'+ window.location.pathname);\n   30  \n   ..\n   41              app.ports.roomError.send\n   42          );\n   43:         console.log('LISTENING DECK', deckPath.toString());\n   44:         deckPath.on(\n   45              'value',\n   46              function(snapshot) {\n   47                  var rawValue = snapshot.val();\n   48:                 console.log('HEARD DECK', rawValue);\n   49:                 app.ports.deck.send(JSON.stringify(rawValue));\n   50              },\n   51:             app.ports.deckError.send\n   52          );\n   53    });\n   ..\n   56          console.log('SILENCING', roomPath.toString());\n   57          roomPath.off('value');\n   58:         deckPath.off('value');\n   59      });\n   60  \n\n191 matches across 23 files\n\n\nSearching 612 files for \"ChangeTopic\"\n\n/Users/nwt/code/storyestimation.firebaseapp.com/dist/app.js:\n 9089  \treturn {ctor: 'RevealResults', _0: a};\n 9090  };\n 9091: var _user$project$Room_Types$ChangeTopic = function (a) {\n 9092: \treturn {ctor: 'ChangeTopic', _0: a};\n 9093  };\n 9094  var _user$project$Room_Types$ChangeName = function (a) {\n ....\n 10004  \t\t\t\t\t\t\t_elm_lang$html$Html_Attributes$class('topic'),\n 10005  \t\t\t\t\t\t\t_elm_lang$html$Html_Attributes$value(roomTopic),\n 10006: \t\t\t\t\t\t\t_elm_lang$html$Html_Events$onInput(_user$project$Room_Types$ChangeTopic),\n 10007  \t\t\t\t\t\t\t_elm_lang$html$Html_Attributes$rows(rowsCount),\n 10008  \t\t\t\t\t\t\t_elm_lang$html$Html_Attributes$wrap('hard')\n\n/Users/nwt/code/storyestimation.firebaseapp.com/elm-stuff/build-artifacts/0.17.1/user/project/1.0.0/Room-Types.elmi:\n    <binary>\n\n/Users/nwt/code/storyestimation.firebaseapp.com/elm-stuff/build-artifacts/0.17.1/user/project/1.0.0/Room-Types.elmo:\n   22  \treturn {ctor: 'RevealResults', _0: a};\n   23  };\n   24: var _user$project$Room_Types$ChangeTopic = function (a) {\n   25: \treturn {ctor: 'ChangeTopic', _0: a};\n   26  };\n   27  var _user$project$Room_Types$ChangeName = function (a) {\n\n/Users/nwt/code/storyestimation.firebaseapp.com/elm-stuff/build-artifacts/0.17.1/user/project/1.0.0/Room-View.elmo:\n  412  \t\t\t\t\t\t\t_elm_lang$html$Html_Attributes$class('topic'),\n  413  \t\t\t\t\t\t\t_elm_lang$html$Html_Attributes$value(roomTopic),\n  414: \t\t\t\t\t\t\t_elm_lang$html$Html_Events$onInput(_user$project$Room_Types$ChangeTopic),\n  415  \t\t\t\t\t\t\t_elm_lang$html$Html_Attributes$rows(rowsCount),\n  416  \t\t\t\t\t\t\t_elm_lang$html$Html_Attributes$wrap('hard')\n\n/Users/nwt/code/storyestimation.firebaseapp.com/src/Room/State.elm:\n  106                      ( model, Cmd.none )\n  107  \n  108:         ChangeTopic topic ->\n  109              case model.room of \n  110                  Success room -> \n\n/Users/nwt/code/storyestimation.firebaseapp.com/src/Room/Types.elm:\n   43      | HeardDeck (Result String Deck)\n   44      | ChangeName Name\n   45:     | ChangeTopic Topic\n   46      | RevealResults Bool\n   47      | VoteFor Vote\n\n/Users/nwt/code/storyestimation.firebaseapp.com/src/Room/View.elm:\n   50                      ]\n   51              , h4 [] [text \"How big is: \"]\n   52:             , textarea [class \"topic\", value roomTopic, onInput ChangeTopic, rows rowsCount, wrap \"hard\"] []\n   53              , div [class \"col-12\"]\n   54                    [ deckView userVote model ]\n\n12 matches across 7 files\n",
-			"settings":
-			{
-				"buffer_size": 18341,
-				"line_ending": "Unix",
-				"name": "Find Results",
-				"scratch": true
-			}
-		},
-		{
-			"file": "src/Room/State.elm",
-			"settings":
-			{
-				"buffer_size": 3012,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			}
-		}
 	],
 	"build_system": "",
 	"build_system_choices":
@@ -162,24 +122,36 @@
 	"expanded_folders":
 	[
 		"/Users/nwt/code/storyestimation.firebaseapp.com",
-		"/Users/nwt/code/storyestimation.firebaseapp.com/elm-stuff/packages",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/dist",
 		"/Users/nwt/code/storyestimation.firebaseapp.com/src",
 		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Firebase",
 		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Room",
-		"/Users/nwt/code/storyestimation.firebaseapp.com/static"
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Room/Deck",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/static",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/test"
 	],
 	"file_history":
 	[
+		"/Users/nwt/code/storyestimation.firebaseapp.com/data.init",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/test/StateTest.elm",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Room/Ports.elm",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Room/State.elm",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src/State.elm",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Room/View.elm",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/NOTES.org",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/Makefile",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/static/interop.js",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Room/Types.elm",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/database.rules.json",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/elm-package.json",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Types.elm",
+		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Room/Rest.elm",
 		"/Users/nwt/Downloads/storyestimation-deck_-export.json",
 		"/Users/nwt/code/jira_event_publisher_plugin/readme.md",
 		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Firebase/Auth.elm",
-		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Types.elm",
-		"/Users/nwt/code/storyestimation.firebaseapp.com/database.rules.json",
 		"/Users/nwt/code/storyestimation.firebaseapp.com/src/App.elm",
 		"/Users/nwt/code/storyestimation.firebaseapp.com/src/View.elm",
 		"/Users/nwt/code/storyestimation.firebaseapp.com/src/User/View.elm",
-		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Room/View.elm",
-		"/Users/nwt/code/storyestimation.firebaseapp.com/src/Room/Types.elm",
 		"/Users/nwt/code/nibbleit.firebase.com/src/Goal/Types.elm",
 		"/Users/nwt/code/shop_by_recipe/helpers.rb",
 		"/Users/nwt/code/shop_by_recipe/app.rb",
@@ -274,6 +246,8 @@
 		"height": 93.0,
 		"where_history":
 		[
+			"/Users/nwt/code/storyestimation.firebaseapp.com/src,/Users/nwt/code/storyestimation.firebaseapp.com/static",
+			"/Users/nwt/code/storyestimation.firebaseapp.com/src",
 			"/Users/nwt/code/storyestimation.firebaseapp.com",
 			"/Users/nwt/code/nibbleit.firebase.com/src,/Users/nwt/code/nibbleit.firebase.com/static,/Users/nwt/code/nibbleit.firebase.com/test",
 			"/Users/nwt/code/nibbleit.firebase.com,*.elm",
@@ -289,6 +263,30 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"Deck",
+			"pickDeck",
+			"ChangeName",
+			"nameSend",
+			"deckSend",
+			"nameSend",
+			"deckSend",
+			"changeName",
+			"toggle",
+			"decksError",
+			"roomError",
+			"deckError",
+			"decksError",
+			"roomListen",
+			"Loading",
+			"\n        ",
+			"deckSilence",
+			"decksSilence",
+			"decksError",
+			"roomSilence",
+			"roomError",
+			"Listen",
+			"decksListen",
+			"deck",
 			"ChangeTopic",
 			"deck",
 			"ChangeName",
@@ -387,673 +385,8 @@
 	"groups":
 	[
 		{
-			"selected": 3,
 			"sheets":
 			[
-				{
-					"buffer": 0,
-					"file": "data.init",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 203,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								107,
-								107
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 4,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "database.rules.json",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 617,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								562,
-								562
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JSON.sublime-syntax",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 3,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "src/Room/View.elm",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 7283,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								5785,
-								5785
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Elm Language Support/Syntaxes/Elm.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 283.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 18341,
-						"regions":
-						{
-							"match":
-							{
-								"flags": 112,
-								"regions":
-								[
-									[
-										134,
-										138
-									],
-									[
-										156,
-										160
-									],
-									[
-										255,
-										259
-									],
-									[
-										415,
-										419
-									],
-									[
-										652,
-										656
-									],
-									[
-										675,
-										679
-									],
-									[
-										868,
-										872
-									],
-									[
-										918,
-										922
-									],
-									[
-										1112,
-										1116
-									],
-									[
-										1162,
-										1166
-									],
-									[
-										1326,
-										1330
-									],
-									[
-										1378,
-										1382
-									],
-									[
-										1457,
-										1461
-									],
-									[
-										1523,
-										1527
-									],
-									[
-										1663,
-										1667
-									],
-									[
-										1730,
-										1734
-									],
-									[
-										1836,
-										1840
-									],
-									[
-										1904,
-										1908
-									],
-									[
-										2101,
-										2105
-									],
-									[
-										2463,
-										2467
-									],
-									[
-										2579,
-										2583
-									],
-									[
-										2780,
-										2784
-									],
-									[
-										2891,
-										2895
-									],
-									[
-										3178,
-										3182
-									],
-									[
-										3261,
-										3265
-									],
-									[
-										3354,
-										3358
-									],
-									[
-										3501,
-										3505
-									],
-									[
-										3536,
-										3540
-									],
-									[
-										3800,
-										3804
-									],
-									[
-										3895,
-										3899
-									],
-									[
-										4181,
-										4185
-									],
-									[
-										4259,
-										4263
-									],
-									[
-										4450,
-										4454
-									],
-									[
-										4626,
-										4630
-									],
-									[
-										4778,
-										4782
-									],
-									[
-										4977,
-										4981
-									],
-									[
-										5003,
-										5007
-									],
-									[
-										5202,
-										5206
-									],
-									[
-										5209,
-										5213
-									],
-									[
-										5246,
-										5250
-									],
-									[
-										5423,
-										5427
-									],
-									[
-										5474,
-										5478
-									],
-									[
-										5562,
-										5566
-									],
-									[
-										5729,
-										5733
-									],
-									[
-										6094,
-										6098
-									],
-									[
-										6146,
-										6150
-									],
-									[
-										6225,
-										6229
-									],
-									[
-										6291,
-										6295
-									],
-									[
-										6431,
-										6435
-									],
-									[
-										6498,
-										6502
-									],
-									[
-										6604,
-										6608
-									],
-									[
-										6672,
-										6676
-									],
-									[
-										7102,
-										7106
-									],
-									[
-										7707,
-										7711
-									],
-									[
-										7823,
-										7827
-									],
-									[
-										8024,
-										8028
-									],
-									[
-										8135,
-										8139
-									],
-									[
-										8422,
-										8426
-									],
-									[
-										8505,
-										8509
-									],
-									[
-										8598,
-										8602
-									],
-									[
-										8745,
-										8749
-									],
-									[
-										8780,
-										8784
-									],
-									[
-										9044,
-										9048
-									],
-									[
-										9139,
-										9143
-									],
-									[
-										9657,
-										9661
-									],
-									[
-										9680,
-										9684
-									],
-									[
-										9873,
-										9877
-									],
-									[
-										9923,
-										9927
-									],
-									[
-										10117,
-										10121
-									],
-									[
-										10167,
-										10171
-									],
-									[
-										10622,
-										10626
-									],
-									[
-										10700,
-										10704
-									],
-									[
-										10891,
-										10895
-									],
-									[
-										11067,
-										11071
-									],
-									[
-										11216,
-										11220
-									],
-									[
-										11811,
-										11815
-									],
-									[
-										11865,
-										11869
-									],
-									[
-										11923,
-										11927
-									],
-									[
-										11970,
-										11974
-									],
-									[
-										12190,
-										12194
-									],
-									[
-										12205,
-										12209
-									],
-									[
-										12223,
-										12227
-									],
-									[
-										12423,
-										12427
-									],
-									[
-										12488,
-										12492
-									],
-									[
-										12670,
-										12674
-									],
-									[
-										12702,
-										12706
-									],
-									[
-										12715,
-										12719
-									],
-									[
-										12775,
-										12779
-									],
-									[
-										12785,
-										12789
-									],
-									[
-										12903,
-										12907
-									],
-									[
-										12953,
-										12957
-									],
-									[
-										13084,
-										13088
-									],
-									[
-										13132,
-										13136
-									],
-									[
-										13340,
-										13344
-									],
-									[
-										13471,
-										13475
-									],
-									[
-										13501,
-										13505
-									],
-									[
-										13565,
-										13569
-									],
-									[
-										13741,
-										13745
-									],
-									[
-										13761,
-										13765
-									],
-									[
-										13910,
-										13914
-									],
-									[
-										14234,
-										14238
-									],
-									[
-										14390,
-										14394
-									],
-									[
-										14434,
-										14438
-									],
-									[
-										14482,
-										14486
-									],
-									[
-										14513,
-										14517
-									],
-									[
-										14604,
-										14608
-									],
-									[
-										14773,
-										14777
-									],
-									[
-										14872,
-										14876
-									],
-									[
-										15035,
-										15039
-									],
-									[
-										15061,
-										15065
-									],
-									[
-										15260,
-										15264
-									],
-									[
-										15267,
-										15271
-									],
-									[
-										15304,
-										15308
-									],
-									[
-										15481,
-										15485
-									],
-									[
-										15532,
-										15536
-									],
-									[
-										15620,
-										15624
-									],
-									[
-										15787,
-										15791
-									],
-									[
-										16057,
-										16068
-									],
-									[
-										16109,
-										16120
-									],
-									[
-										16412,
-										16423
-									],
-									[
-										16890,
-										16901
-									],
-									[
-										16942,
-										16953
-									],
-									[
-										17353,
-										17364
-									],
-									[
-										17626,
-										17637
-									],
-									[
-										17881,
-										17892
-									],
-									[
-										18174,
-										18185
-									]
-								],
-								"scope": ""
-							}
-						},
-						"selection":
-						[
-							[
-								15864,
-								15864
-							]
-						],
-						"settings":
-						{
-							"detect_indentation": false,
-							"line_numbers": false,
-							"output_tag": 2,
-							"result_base_dir": "",
-							"result_file_regex": "^([^ \t].*):$",
-							"result_line_regex": "^ +([0-9]+):",
-							"scroll_past_end": true,
-							"syntax": "Packages/Default/Find Results.hidden-tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 8406.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "src/Room/State.elm",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 3012,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2564,
-								2575
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Elm Language Support/Syntaxes/Elm.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1489.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				}
 			]
 		}
 	],
@@ -1110,12 +443,24 @@
 		"selected_items":
 		[
 			[
-				"remote",
-				"elm-stuff/packages/krisajenkins/elm-exts/25.7.0/src/Exts/RemoteData.elm"
+				"make",
+				"Makefile"
+			],
+			[
+				"note",
+				"NOTES.org"
+			],
+			[
+				"state",
+				"src/Room/State.elm"
 			],
 			[
 				"",
-				"Dockerfile"
+				"src/Room/State.elm"
+			],
+			[
+				"remote",
+				"elm-stuff/packages/krisajenkins/elm-exts/25.7.0/src/Exts/RemoteData.elm"
 			]
 		],
 		"width": 0.0

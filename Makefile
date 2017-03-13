@@ -25,12 +25,10 @@ dist/%.ico: static/%.ico dist
 	cp $< $@
 
 .tested: $(shell find src test -type f -name '*.elm' -o -name '*.js')
-	@ elm-make test/Test.elm --yes --warn --output=$(TEMPFILE)
-	@ sed -i "" '1s/^/window = {};/' $(TEMPFILE)
-	@ node $(TEMPFILE)
+	@ elm-test 
 
 TEMPFILE := $(shell mktemp "$$TMPDIR/$$(uuidgen).js")
 
 
 serve: all 
-	@ firebase serve
+	@ firebase serve -p 5000 -o 127.0.0.1

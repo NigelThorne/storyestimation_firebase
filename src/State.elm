@@ -1,7 +1,7 @@
 module State exposing (..)
 
 import Room.State as Room
-import Exts.RemoteData as RemoteData exposing (..)
+import RemoteData as RemoteData exposing (..)
 import Firebase.Auth as Firebase
 import Response exposing (..)
 import Types exposing (..)

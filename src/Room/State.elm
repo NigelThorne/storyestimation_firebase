@@ -4,28 +4,35 @@ import Dict
 import Room.Ports exposing (..)
 import Room.Rest exposing (..)
 import Room.Types exposing (..)
-import Exts.RemoteData as RemoteData exposing (..)
+import RemoteData as RemoteData exposing (..)
 import Firebase.Auth exposing (User)
 import Json.Decode as Decode
 
 
 initialVote : Vote
-initialVote = Nothing
+initialVote =
+    Nothing
+
 
 initialName : Name
-initialName = "Anonymous"
+initialName =
+    "Anonymous"
+
 
 initialTopic : Topic
-initialTopic = "Pick a Topic..."
+initialTopic =
+    "Pick a Topic..."
+
 
 initialRoom : Room
-initialRoom =  
-    { topic         = Just "Unknown Topic"
-    , votes         = Dict.empty
-    , voters        = Dict.empty
-    , showVotes     = False
-    , deckId        = Nothing
+initialRoom =
+    { topic = Just "Unknown Topic"
+    , votes = Dict.empty
+    , voters = Dict.empty
+    , showVotes = False
+    , deckId = Nothing
     }
+
 
 initialState : ( Model, Cmd Msg )
 initialState =
@@ -38,6 +45,7 @@ initialState =
     , roomListen ()
     )
 
+
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
@@ -47,6 +55,7 @@ subscriptions _ =
         , decksError DecksError
         , voteSendError VoteError
         ]
+
 
 update : User -> Msg -> Model -> ( Model, Cmd Msg )
 update user msg model =
@@ -76,7 +85,7 @@ update user msg model =
             , Cmd.none
             )
 
-        VoteFor  card ->
+        VoteFor card ->
             case model.room of
                 Success room ->
                     ( model
@@ -96,6 +105,16 @@ update user msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        ChangeDeck deckId ->
+            case model.decks of
+                Success decks ->
+                    ( model
+                    , deckSend ( user.uid, deckId )
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
         RevealResults isRevealed ->
             case model.room of
                 Success room ->
@@ -107,18 +126,11 @@ update user msg model =
                     ( model, Cmd.none )
 
         ChangeTopic topic ->
-            case model.room of 
-                Success room -> 
+            case model.room of
+                Success room ->
                     ( model
                     , topicSend topic
                     )
 
                 _ ->
                     ( model, Cmd.none )
-
-        --ChangeDeck deckName ->
-        --    case model.room of
-        --        Success room ->
-        --            ( model
-        --            , deckChangeSend deckName 
-        --            )

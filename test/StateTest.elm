@@ -1,6 +1,6 @@
 module StateTest exposing (tests)
 
-import ElmTest exposing (..)
+import Test exposing (..)
 
 
 -- import Check exposing (..)
@@ -12,18 +12,20 @@ import ElmTest exposing (..)
 
 tests : Test
 tests =
-    ElmTest.suite "State" 
-         [ 
-         updateTests
---         , evidenceToTest (quickCheck updateClaims)
-         ]
+    ElmTest.suite "State"
+        [ updateTests
+          --         , evidenceToTest (quickCheck updateClaims)
+        ]
+
 
 updateTests : Test
 updateTests =
     ElmTest.suite "update"
         [ defaultTest
-            (assertEqual  5  5 )
+            (assertEqual 5 5)
         ]
+
+
 
 --updateClaims : Claim
 --updateClaims =

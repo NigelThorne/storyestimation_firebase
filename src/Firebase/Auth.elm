@@ -9,14 +9,17 @@ port module Firebase.Auth
         )
 
 import Exts.Maybe exposing (..)
-import Exts.RemoteData exposing (..)
+import RemoteData exposing (..)
 import Firebase.Common exposing (..)
+
 
 type alias Email =
     String
 
+
 type alias UID =
     String
+
 
 type alias User =
     { uid : UID
@@ -27,7 +30,8 @@ type alias User =
     , isAnonymous : Bool
     }
 
-type alias AuthData = 
+
+type alias AuthData =
     RemoteData Error User
 
 
