@@ -1,4 +1,4 @@
-all: dist/app.js dist/index.html dist/main.css dist/interop.js .tested
+all: dist/app.js dist/index.html dist/rooms.html dist/main.css dist/interop.js .tested
 
 dist/main.css: $(shell find styles -type f -name '*.less')
 	lessc styles/main.less $@

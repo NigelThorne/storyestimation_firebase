@@ -6,19 +6,21 @@
         <link rel="stylesheet" type="text/css" href="/main.css" />
         <link rel="icon" href="favicon.ico" type="image/x-icon" />
         <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" />
-        <script type="text/javascript" src="/app.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/3.2.0/firebase.js"></script>
-        <script>
-            var firebaseConfig = {
-            apiKey: "AIzaSyAZRcQD3HPOKZD907wUCwgvY3v8w_SP42Y",
-            authDomain: "storyestimation.firebaseapp.com",
-            databaseURL: "https://storyestimation.firebaseio.com",
-            storageBucket: "storyestimation.appspot.com"
-        }
-        </script>
     </head>
 
     <body>
-        <script type="text/javascript" src="/interop.js"></script>
+        <h1>Welcome to Vote-O-Matic</h1>
+        <h2>Pick a room...</h2>
+        <form name="form1" id="form1" method="get" onsubmit="return redirect()">
+          <input type="text" name="room_name" id="room_name" width="200px"/>
+          <input type="submit" class="button4" name="order" id="order" value="Take me there!" />
+        </form>
+        <script type="text/javascript">
+            function redirect() {
+
+              window.location.replace("/rooms/" + document.getElementById("room_name").value);
+              return false;
+            }
+        </script>
     </body>
 </html>

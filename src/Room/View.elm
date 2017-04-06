@@ -63,7 +63,8 @@ roomView user room model =
             roomTopic |> String.lines |> List.length
     in
         div []
-            [ h3 []
+            [ h2 [][text ("Room " ++ roomTopic)]
+            , h3 []
                 [ text "Hi "
                 , input [ class "", placeholder "Your name goes here", onInput ChangeName, value userName ] []
                 ]

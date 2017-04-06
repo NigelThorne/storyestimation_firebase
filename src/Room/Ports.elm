@@ -5,86 +5,18 @@ import Firebase.Auth exposing (..)
 import Firebase.Common exposing (..)
 
 
-port room : (String -> msg) -> Sub msg
+port handleRoom : (String -> msg) -> Sub msg
+port handleDecks : (String -> msg) -> Sub msg
+port handleError : (Error -> msg) -> Sub msg
 
-
-port roomError : (Error -> msg) -> Sub msg
-
-
-port roomListen : () -> Cmd msg
-
-
-port roomSilence : () -> Cmd msg
-
-
-
-------------------------------------------------------------
-
-
-port decks : (String -> msg) -> Sub msg
-
-
-port decksListen : () -> Cmd msg
-
-
-port decksSilence : () -> Cmd msg
-
-
-port decksError : (Error -> msg) -> Sub msg
-
-
-
-------------------------------------------------------------
-
+port onInitialize : () -> Cmd msg
+port onFinalize : () -> Cmd msg
 
 port voteSend : ( UID, Vote ) -> Cmd msg
-
-
-port voteSendError : (Error -> msg) -> Sub msg
-
-
-
-------------------------------------------------------------
-
-
 port nameSend : ( UID, Name ) -> Cmd msg
-
-
-port nameSendError : (Error -> msg) -> Sub msg
-
-
-
-------------------------------------------------------------
-
-
 port deckSend : ( UID, Int ) -> Cmd msg
-
-
-port deckSendError : (Error -> msg) -> Sub msg
-
-
-
-------------------------------------------------------------
-
-
-port topicSend : Topic -> Cmd msg
-
-
-
-------------------------------------------------------------
-
-
-port votingCompleteSend : Bool -> Cmd msg
-
-
-port votingCompleteSendError : (Error -> msg) -> Sub msg
-
-
-
-------------------------------------------------------------
-
-
 port cardSend : ( UID, Card ) -> Cmd msg
 
+port topicSend : Topic -> Cmd msg
+port votingCompleteSend : Bool -> Cmd msg
 
-port cardSendError : (Error -> msg) -> Sub msg

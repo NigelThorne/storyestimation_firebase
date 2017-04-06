@@ -50,6 +50,7 @@ decodeDeck =
 decodeRoom : Decoder Room
 decodeRoom =
     decode Room
+        |> optional "name" (maybe string) Nothing 
         |> optional "topic" (maybe string) Nothing
         |> optional "votes" (dict decodeVote) Dict.empty
         |> optional "voters" (dict decodeVoter) Dict.empty

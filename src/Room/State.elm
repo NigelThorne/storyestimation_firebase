@@ -1,6 +1,6 @@
 module Room.State exposing (..)
 
-import Dict
+-- import Dict
 import Room.Ports exposing (..)
 import Room.Rest exposing (..)
 import Room.Types exposing (..)
@@ -24,54 +24,40 @@ initialTopic =
     "Pick a Topic..."
 
 
-initialRoom : Room
-initialRoom =
-    { topic = Just "Unknown Topic"
-    , votes = Dict.empty
-    , voters = Dict.empty
-    , showVotes = False
-    , deckId = Nothing
-    }
-
+--initialRoom : Name -> Room
+--initialRoom name =
+--    { name = name
+--    , topic = Just "Unknown Topic"
+--    , votes = Dict.empty
+--    , voters = Dict.empty
+--    , showVotes = False
+--    , deckId = Nothing
+--    }
 
 initialState : ( Model, Cmd Msg )
 initialState =
     ( { room = Loading
       , decks = Loading
-      , roomError = Nothing
-      , decksError = Nothing
-      , voteError = Nothing
+      , error = Nothing
       }
-    , roomListen ()
+    , onInitialize ()
     )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
-        [ room (Decode.decodeString decodeRoom >> HeardRoom)
-        , decks (Decode.decodeString decodeDecks >> HeardDecks)
-        , roomError RoomError
-        , decksError DecksError
-        , voteSendError VoteError
+        [ handleRoom (Decode.decodeString decodeRoom >> HeardRoom)
+        , handleDecks (Decode.decodeString decodeDecks >> HeardDecks)
+        , handleError Error
         ]
 
 
 update : User -> Msg -> Model -> ( Model, Cmd Msg )
 update user msg model =
     case msg of
-        VoteError err ->
-            ( { model | voteError = Just err }
-            , Cmd.none
-            )
-
-        RoomError error ->
-            ( { model | roomError = Just error }
-            , Cmd.none
-            )
-
-        DecksError error ->
-            ( { model | decksError = Just error }
+        Error err ->
+            ( { model | error = Just err }
             , Cmd.none
             )
 
